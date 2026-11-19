@@ -26,6 +26,7 @@ import (
 	"github.com/hanzozt/zt/v2/router/env"
 	"github.com/hanzozt/zt/v2/zt/cmd/create"
 	"github.com/hanzozt/zt/v2/zt/constants"
+	"github.com/hanzozt/zt/v2/zt/run/certnames"
 	"github.com/michaelquigley/pfxlog"
 	"github.com/spf13/cobra"
 )
@@ -94,6 +95,21 @@ func Controller(cmd *cobra.Command, opts Options) error {
 		}
 	} else if err != nil {
 		return err
+	}
+
+	// The PKI is made once, for the address advertised at first boot. A name the
+	// API is also reached at is put on the server certificate on every boot, so
+	// adding one later needs no new PKI: TLS verifies there, and the controller
+	// answers as an OIDC issuer there, as it does for every name it carries.
+	if alt := os.Getenv(constants.CtrlEdgeAltAdvertisedAddressVarName); alt != "" {
+		changed, err := certnames.Ensure(os.Getenv(constants.PkiCtrlServerCertVarName),
+			os.Getenv(constants.PkiSignerCertVarName), os.Getenv(constants.PkiSignerKeyVarName), strings.Split(alt, ","))
+		if err != nil {
+			return fmt.Errorf("%s: %w", constants.CtrlEdgeAltAdvertisedAddressVarName, err)
+		}
+		if changed {
+			pfxlog.Logger().Infof("server certificate re-issued to name %s as well", alt)
+		}
 	}
 
 	if err := seed(cfg, issuer, jwks, os.Getenv(iamAudience), admins, os.Getenv(constants.RouterNameVarName), home); err != nil {

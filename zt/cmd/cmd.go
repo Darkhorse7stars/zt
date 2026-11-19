@@ -354,6 +354,9 @@ way in, then runs.
   ZT_HOME                      state directory
   ZT_CTRL_ADVERTISED_ADDRESS   address clients reach the API at
   ZT_CTRL_ADVERTISED_PORT      port clients reach the API at (the API listens on 1280)
+  ZT_CTRL_EDGE_ALT_ADVERTISED_ADDRESS
+                               more names the API is reached at, comma-separated;
+                               every boot puts them on the server certificate
   ZT_IAM_ISSUER                IAM issuer, e.g. https://hanzo.id
   ZT_IAM_JWKS                  IAM JWKS URL
   ZT_IAM_AUDIENCE              audience tokens must carry; unset accepts any
